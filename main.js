@@ -140,21 +140,33 @@ var UrlPrefix = document.location.href.replace(document.location.search, '');
         }
         //pl1UrlTextArea.value += "  b: " + Math.round(e.beta) + "  g: " + Math.round(e.gamma);
     }
-    if (window.localStorage.getItem('auto-hide-disabled')) {
-        document.getElementById('enableAutoHideControls').style.display = 'block';
-    } else {
+    if (window.localStorage.getItem('auto-hide-enabled')) {
         window.addEventListener("deviceorientation", handleOrientation);
+    } else {
+        document.getElementById('enableAutoHideControls').style.display = 'block';
     }
     document.getElementById('disableAutoHide').onclick = function () {
         autoShow();
         document.getElementById('enableAutoHideControls').style.display = 'block';
         window.removeEventListener("deviceorientation", handleOrientation);
-        window.localStorage.setItem('auto-hide-disabled', 'true');
+        window.localStorage.removeItem('auto-hide-enabled');
     };
     document.getElementById('enableAutoHide').onclick = function () {
-        document.getElementById('enableAutoHideControls').style.display = 'none';
-        window.addEventListener("deviceorientation", handleOrientation);
-        window.localStorage.removeItem('auto-hide-disabled');
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    window.addEventListener("deviceorientation", handleOrientation);
+                    document.getElementById('enableAutoHideControls').style.display = 'none';
+                    window.localStorage.setItem('auto-hide-enabled', 'true');
+                }
+            })
+            .catch(console.error);
+        } else {
+            window.addEventListener("deviceorientation", handleOrientation);
+            document.getElementById('enableAutoHideControls').style.display = 'none';
+            window.localStorage.setItem('auto-hide-enabled', 'true');
+        }
     };
 
 
